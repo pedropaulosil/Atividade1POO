@@ -1,50 +1,95 @@
-Herança aplicada a um backend: a tela de login
-Cada equipe cria o módulo de login (extremamente simplificado ) da API, seguindo exatamente o módulo produtos, que já está pronto no repositório. É a parte prática: o aplicativo manda nome e senha, e a API responde o que aquele usuário pode fazer. Quem decide as permissões é a herança que você estudou na aula 5.
-Na Parte B cada equipe informar onde foi aplicado encapsulamento e herançaao próprio KiOferta e apresenta para a turma em dez minutos.
+# Módulo de Login — API
 
-As duas partes são feitas pela mesma equipe, de três a quatro pessoas ja definidos.
+## 1. Objetivo
 
-O módulo de login
-O que você recebe pronto
-Arquivo	O que é
-app/data/produtos_mock.py	Dados mockados dos produtos
-app/models/produto.py	A model Produto e a função carregar_produtos()
-app/controllers/produto_controller.py	O ProdutoController
-app/routes/produto_routes.py	As rotas GET /api/produtos, GET /api/produtos/categoria/{categoria} e GET /api/produtos/{id}
-app/data/usuarios_mock.py	Os usuários mockados que o seu login vai usar
-main.py	Já liga o módulo produtos, com o import e o include_router
-O módulo produtos é o modelo. Leia os quatro arquivos antes de começar: o caminho é sempre o mesmo.
+Este projeto implementa um módulo de **login simplificado** para uma API desenvolvida com **FastAPI**. O usuário envia nome e senha, e a API verifica as credenciais e retorna seu perfil e suas permissões.
 
-main.py  ->  routes  ->  controller  ->  model  ->  data (mock)
+## 2. Estrutura
 
-Os dados mockados
-# app/data/usuarios_mock.py
-USUARIOS = [
-    {'id': 1, 'nome': 'bia', 'senha': 'bia123', 'perfil': 'visitante'},
-    {'id': 2, 'nome': 'ana', 'senha': 'ana123', 'perfil': 'contribuidor'},
-    {'id': 3, 'nome': 'caio', 'senha': 'caio123', 'perfil': 'moderador'},
-]
+```text
+app/
+├── data/
+│   └── usuarios_mock.py
+│
+├── models/
+│   └── usuario.py
+│
+├── controllers/
+│   └── auth_controller.py
+│
+└── routes/
+    └── auth_routes.py
 
-São três usuários com três perfis diferentes: cada um precisa virar um objeto de uma classe diferente. É assim que a herança da equipe é verificada.
+main.py
+```
 
-Não altere este arquivo. A correção usa exatamente estes dados.
+## 3. Funcionamento
 
-Dica: do texto do perfil para a classe
-O mock guarda o perfil como texto, 'moderador'. A model precisa transformar esse texto na classe Moderador. Duas formas são aceitas:
-# com if
-if u['perfil'] == 'moderador':
-    usuario = Moderador(u['id'], u['nome'], u['senha'])
+O login é realizado através da rota:
 
-# com um dicionário: em Python a própria classe é um objeto
-PERFIS = {'visitante': Visitante, 'contribuidor': Contribuidor, 'moderador': Moderador}
-usuario = PERFIS[u['perfil']](u['id'], u['nome'], u['senha'])
+```text
+POST /api/auth/login
+```
 
-Esse if é permitido aqui, na hora de criar o objeto. Depois de criado, ninguém mais pergunta o perfil.
+A requisição recebe o nome e a senha do usuário. O `AuthController` procura o usuário nos dados mockados e verifica a senha. Se as credenciais forem válidas, são retornados o nome, o perfil e as permissões do usuário.
 
-Como testar
+Em caso de credenciais inválidas, a API retorna o status **401**.
+
+## 4. Perfis e permissões
+
+O sistema possui três tipos de usuário:
+
+* **Visitante:** pode favoritar.
+* **Contribuidor:** pode favoritar e publicar.
+* **Moderador:** pode favoritar, publicar e moderar.
+
+As permissões são definidas através de **herança e sobrescrita de métodos**, evitando concentrar todas as regras em condicionais no Controller.
+
+## 5. Responsabilidade dos arquivos
+
+* **`usuarios_mock.py`**: contém os usuários utilizados para testes.
+* **`usuario.py`**: define a classe `Usuario` e seus perfis derivados.
+* **`auth_controller.py`**: contém a lógica de autenticação.
+* **`auth_routes.py`**: define a rota de login e as respostas HTTP.
+* **`main.py`**: registra as rotas na aplicação FastAPI.
+
+## 6. Conceitos utilizados
+
+* Programação Orientada a Objetos (POO);
+* Encapsulamento;
+* Herança;
+* Sobrescrita de métodos;
+* Separação de responsabilidades;
+* Arquitetura em camadas/MVC;
+* FastAPI e rotas HTTP;
+* Status HTTP `401`.
+
+## 7. Fluxo
+
+```text
+Usuário
+   ↓
+POST /api/auth/login
+   ↓
+Auth Route
+   ↓
+Auth Controller
+   ↓
+Usuario
+   ↓
+Verificação da senha
+   ↓
+Perfil e permissões
+   ↓
+Resposta da API
+```
+
+## 8. Execução
+
+Com as dependências instaladas, executar:
+
+```bash
 uvicorn main:app --reload
+```
 
-Abra http://127.0.0.1:8000/docs e teste, nesta ordem:
-
-Como entregar
-ao clonar o repo, subam para o próprio github, mesmo feito em equipe cada membro sobe em sue github e o link do github no teams
+A API pode ser testada através da documentação automática do FastAPI em `/docs`.
